@@ -3,11 +3,11 @@ on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'اسم التطبيق المراد صنعه'
+        description: 'اسم التطبيق'
         required: true
         default: 'My App'
       app_url:
-        description: 'رابط الموقع المراد تحويله إلى تطبيق'
+        description: 'رابط الموقع'
         required: true
         default: 'https://google.com'
 
@@ -21,18 +21,16 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-size: 18
+          node-version: '18' # صلحنا مشكلة النسخة
 
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create Webview App
+      - name: Create App
         run: |
           cordova create myapp com.example.app "${{ github.event.inputs.app_name }}"
           cd myapp
           cordova platform add android
-          
-          # هنا الخدعة: الكود يمسح الصفحة الافتراضية ويحط كود يحول للرابط اللي يريده المستخدم تلقائياً
           echo '<script>window.location.href = "${{ github.event.inputs.app_url }}";</script>' > www/index.html
 
       - name: Set up JDK 17
@@ -47,10 +45,12 @@ jobs:
       - name: Build APK
         run: |
           cd myapp
-          cordova build android --release
+          # هذا السطر يبني التطبيق بدون الحاجة لتوقيع رقمي حالياً للتجربة
+          cordova build android --release -- --packageType=apk
 
-      - name: Upload APK Resource
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: Generated-APK
-          path: myapp/platforms/android/app/build/outputs/apk/release/app-release-unsigned.apk
+          # هذا المسار العام حتى يلقى أي ملف APK تم إنتاجه
+          path: myapp/platforms/android/app/build/outputs/apk/release/*.apk
