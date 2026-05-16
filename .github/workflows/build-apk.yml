@@ -21,16 +21,17 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '18' # صلحنا مشكلة النسخة
+          node-version: '18'
 
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Create App
+      - name: Create App Project
         run: |
-          cordova create myapp com.example.app "${{ github.event.inputs.app_name }}"
+          cordova create myapp com.easy.builder "${{ github.event.inputs.app_name }}"
           cd myapp
           cordova platform add android
+          # تعديل الكود لفتح الرابط المطلوب مباشرة
           echo '<script>window.location.href = "${{ github.event.inputs.app_url }}";</script>' > www/index.html
 
       - name: Set up JDK 17
@@ -42,15 +43,15 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Build APK
+      - name: Build Debug APK
         run: |
           cd myapp
-          # هذا السطر يبني التطبيق بدون الحاجة لتوقيع رقمي حالياً للتجربة
-          cordova build android --release -- --packageType=apk
+          # بناء نسخة Debug لتجنب مشاكل التوقيع الرقمي (التثبيت الفوري)
+          cordova build android --debug
 
-      - name: Upload APK
+      - name: Upload Generated APK
         uses: actions/upload-artifact@v4
         with:
-          name: Generated-APK
-          # هذا المسار العام حتى يلقى أي ملف APK تم إنتاجه
-          path: myapp/platforms/android/app/build/outputs/apk/release/*.apk
+          name: My-Generated-App
+          # المسار الجديد لنسخة الـ Debug
+          path: myapp/platforms/android/app/build/outputs/apk/debug/*.apk
