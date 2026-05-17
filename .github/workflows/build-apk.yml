@@ -1,58 +1,39 @@
-name: ADA Plus - Ultimate APK Generator
-
+name: Build Professional Webview APK
 on:
-  repository_dispatch:
-    types: [build_apk]
+  workflow_dispatch:
+    inputs:
+      app_name:
+        description: 'اسم التطبيق'
+        required: true
+      app_url:
+        description: 'رابط الموقع'
+        required: true
 
 jobs:
   build:
-    name: Build Professional APK
     runs-on: ubuntu-latest
-    permissions:
-      contents: write # ضروري لرفع الملف للتحميل
-
     steps:
-    - name: 1. سحب الكود من المستودع
-      uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v3
 
-    - name: 2. تجهيز البيئة (Java 17)
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
 
-    - name: 3. تفعيل صلاحيات البناء
-      run: chmod +x gradlew
+      - name: Install Nativefier and Build APK
+        run: |
+          # تثبيت الأداة وصنع التطبيق مباشرة من الرابط والاسم اللي دزيتهم من الموبايل
+          npx nativefier "${{ github.event.inputs.app_url }}" \
+          --name "${{ github.event.inputs.app_name }}" \
+          --platform android \
+          --arch arm64
 
-    # --- إضافة "عباس" المميزة: تحديث الرابط داخل الكود تلقائياً ---
-    - name: 4. زرع رابط الموقع داخل التطبيق
-      run: |
-        USER_URL="${{ github.event.client_payload.web_url }}"
-        if [ -z "$USER_URL" ]; then USER_URL="https://www.google.com"; fi
-        # هذا السطر يبحث عن كلمة "YOUR_URL_HERE" في كود الجافا ويستبدلها برابط المستخدم
-        sed -i "s|YOUR_URL_HERE|$USER_URL|g" app/src/main/java/com/example/myapp/MainActivity.java
-        echo "The Website URL has been set to: $USER_URL"
-
-    - name: 5. تنظيف وبناء التطبيق (Release)
-      run: ./gradlew clean assembleRelease
-
-    - name: 6. تسمية الملف باسم المستخدم
-      run: |
-        APP_NAME="${{ github.event.client_payload.app_name }}"
-        if [ -z "$APP_NAME" ]; then APP_NAME="ADA_Plus_App"; fi
-        mv app/build/outputs/apk/release/*.apk app/build/outputs/apk/release/${APP_NAME}.apk
-        echo "Final APK Name: ${APP_NAME}.apk"
-
-    # --- إضافة "التحميل المباشر": رفع الملف للـ Release ---
-    - name: 7. إنشاء رابط تحميل مباشر (Release)
-      uses: softprops/action-gh-release@v1
-      with:
-        tag_name: latest
-        name: "تطبيقك الجديد جاهز!"
-        body: "تم بناء التطبيق بنجاح بواسطة محرك ADA+. يمكنك التحميل الآن."
-        draft: false
-        prerelease: false
-        files: app/build/outputs/apk/release/*.apk
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload APK to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: latest
+          name: "Application Ready: ${{ github.event.inputs.app_name }}"
+          files: ./*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
