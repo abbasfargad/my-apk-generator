@@ -1,4 +1,4 @@
-name: Generate APK Final
+name: Simple APK Build
 on:
   workflow_dispatch:
     inputs:
@@ -16,29 +16,20 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build APK Directly
-        run: |
-          # استخدام أداة سريعة جداً ومباشرة تحول الرابط إلى APK
-          docker run --rm -v ${{ github.workspace }}:/app-dir ghcr.io/viascom/nativefier-docker \
-          "${{ github.event.inputs.app_url }}" \
-          --name "${{ github.event.inputs.app_name }}" \
-          --platform android \
-          --arch arm64
-          
-      - name: Rename and Prepare
-        run: |
-          mv *.apk my-application.apk || true
+      - name: set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
 
-      - name: Upload APK
+      - name: Build With Global Tool
+        run: |
+          # هنا نستخدم أداة بسيطة ما تحتاج مستودع معقد
+          npm install -g nativefier
+          nativefier "${{ github.event.inputs.app_url }}" --name "${{ github.event.inputs.app_name }}" --platform android
+          
+      - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ github.event.inputs.app_name }}
+          name: my-app
           path: ./*.apk
-
-      - name: Create Release
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: v${{ github.run_number }}
-          files: ./*.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
