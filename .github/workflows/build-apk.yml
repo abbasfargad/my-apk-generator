@@ -13,19 +13,23 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Code
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Generate APK from Webview Template
-        uses: abbasfargad/webview-apk-action@main # هذا مثال لمكتبة جاهزة
-        with:
-          name: ${{ github.event.inputs.app_name }}
-          url: ${{ github.event.inputs.app_url }}
+      # استخدام أداة بناء عالمية تحول الرابط لـ APK فوراً
+      - name: Build Android APK
+        run: |
+          docker run --rm -v $PWD:/out ghcr.io/viascom/nativefier-docker \
+          "${{ github.event.inputs.app_url }}" \
+          --name "${{ github.event.inputs.app_name }}" \
+          --platform android \
+          --arch arm64
 
       - name: Release APK
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ github.run_number }}
+          name: "Application: ${{ github.event.inputs.app_name }}"
           files: ./*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
