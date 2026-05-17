@@ -1,12 +1,12 @@
-name: ADA PLUS GENERATOR
+name: APK Final Build
 on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'اسم التطبيق'
+        description: 'App Name'
         required: true
       app_url:
-        description: 'رابط الموقع'
+        description: 'URL'
         required: true
 
 jobs:
@@ -16,16 +16,18 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Install Builder Tool
-        run: npm install -g nativefier
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: Create APK
         run: |
-          nativefier "${{ github.event.inputs.app_url }}" \
-          --name "${{ github.event.inputs.app_name }}" \
-          --platform android
+          npm install -g nativefier
+          # بناء التطبيق غصب عنه هسة لأن المسار موجود
+          nativefier "${{ github.event.inputs.app_url }}" --name "${{ github.event.inputs.app_name }}" --platform android
 
-      - name: Upload Finished APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: ${{ github.event.inputs.app_name }}
