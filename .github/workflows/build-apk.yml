@@ -1,35 +1,32 @@
-name: Simple APK Build
+name: ADA PLUS GENERATOR
 on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'Name'
+        description: 'اسم التطبيق'
         required: true
       app_url:
-        description: 'URL'
+        description: 'رابط الموقع'
         required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+      - name: Install Builder Tool
+        run: npm install -g nativefier
 
-      - name: Build With Global Tool
+      - name: Create APK
         run: |
-          # هنا نستخدم أداة بسيطة ما تحتاج مستودع معقد
-          npm install -g nativefier
-          nativefier "${{ github.event.inputs.app_url }}" --name "${{ github.event.inputs.app_name }}" --platform android
-          
-      - name: Upload
+          nativefier "${{ github.event.inputs.app_url }}" \
+          --name "${{ github.event.inputs.app_name }}" \
+          --platform android
+
+      - name: Upload Finished APK
         uses: actions/upload-artifact@v4
         with:
-          name: my-app
+          name: ${{ github.event.inputs.app_name }}
           path: ./*.apk
