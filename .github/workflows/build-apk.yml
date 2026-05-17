@@ -1,39 +1,31 @@
-name: Build Webview APK
+name: ADA Plus - Ultimate APK Generator
 on:
   workflow_dispatch:
     inputs:
       app_name:
-        description: 'اسم التطبيق'
+        description: 'App Name'
         required: true
       app_url:
-        description: 'رابط الموقع'
+        description: 'App URL'
         required: true
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Generate APK from Webview Template
+        uses: abbasfargad/webview-apk-action@main # هذا مثال لمكتبة جاهزة
         with:
-          node-version: '20'
+          name: ${{ github.event.inputs.app_name }}
+          url: ${{ github.event.inputs.app_url }}
 
-      - name: Build APK with Nativefier
-        run: |
-          # هذه الأداة ستصنع لك التطبيق من الرابط والاسم فوراً
-          npx nativefier "${{ github.event.inputs.app_url }}" \
-          --name "${{ github.event.inputs.app_name }}" \
-          --platform android \
-          --arch arm64
-
-      - name: Create Release and Upload APK
+      - name: Release APK
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.${{ github.run_number }}
-          name: "Application Ready: ${{ github.event.inputs.app_name }}"
+          tag_name: v${{ github.run_number }}
           files: ./*.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
