@@ -1,4 +1,4 @@
-name: Build Professional Webview APK
+name: Build Webview APK
 on:
   workflow_dispatch:
     inputs:
@@ -14,25 +14,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
 
-      - name: Install Nativefier and Build APK
+      - name: Build APK with Nativefier
         run: |
-          # تثبيت الأداة وصنع التطبيق مباشرة من الرابط والاسم اللي دزيتهم من الموبايل
+          # هذه الأداة ستصنع لك التطبيق من الرابط والاسم فوراً
           npx nativefier "${{ github.event.inputs.app_url }}" \
           --name "${{ github.event.inputs.app_name }}" \
           --platform android \
           --arch arm64
 
-      - name: Upload APK to Release
-        uses: softprops/action-gh-release@v1
+      - name: Create Release and Upload APK
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
+          tag_name: v1.0.${{ github.run_number }}
           name: "Application Ready: ${{ github.event.inputs.app_name }}"
           files: ./*.apk
         env:
