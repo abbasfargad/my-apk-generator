@@ -1,34 +1,16 @@
-name: APK Final Build
-on:
-  workflow_dispatch:
-    inputs:
-      app_name:
-        description: 'App Name'
-        required: true
-      app_url:
-        description: 'URL'
-        required: true
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.0.0'
+    }
+}
 
-jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Create APK
-        run: |
-          npm install -g nativefier
-          # بناء التطبيق غصب عنه هسة لأن المسار موجود
-          nativefier "${{ github.event.inputs.app_url }}" --name "${{ github.event.inputs.app_name }}" --platform android
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ github.event.inputs.app_name }}
-          path: ./*.apk
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
